@@ -1,0 +1,686 @@
+/*第三章*/
+#1
+-- CREATE TABLE EMPLOYEE_TABLE AS:
+CREATE TABLE EMPLOYEE_TABLE 
+(
+	-- SSN NUMBER(9) NOT NULL,
+	SSN int(9) NOT NULL,
+	LAST_NAME VARCHAR(20) NOT NULL,
+	FIRST_NAME VARCHAR(20) NOT NULL,
+	MIDDLE_NAME VARCHAR(20) NOT NULL,
+	ST_ADDRESS VARCHAR(30) NOT NULL,
+	CITY CHAR(20) NOT NULL,
+	STATE CHAR(2) NOT NULL,
+	-- ZIP NUMBER(4) NOT NULL, #邮编
+	DATE_HIRED DATE
+);
+
+#2
+ALTER TABLE EMPLOYEE_TABLE DROP DATE_HIRED;
+
+#3
+ALTER TABLE EMPLOYEE_TABLE ADD CONSTRAINT PRIMARY KEY (SSN);
+
+#4
+ALTER TABLE EMPLOYEE_TABLE MODIFY MIDDLE_NAME VARCHAR(20);
+
+#5
+ALTER TABLE EMPLOYEE_TABLE ADD CONSTRAINT CK_STATE CHECK (STATE = 'NY');
+
+#6
+ALTER TABLE EMPLOYEE_TABLE ADD EMPID SERIAL;
+ALTER TABLE EMPLOYEE_TABLE ADD COLUMN EMPID INT AUTO_INCREMENT UNIQUE;
+
+/*第四章*/
+#1
+#雇员
+
+CREATE TABLE EMPLOYEE_TBL(
+	EMP_ID1  INT NOT NULL,
+	FIRST_NAME VARCHAR(20) NOT NULL,
+	MIDDLE_NAME VARCHAR(20) NOT NULL,
+	LAST_NAME VARCHAR(20) NOT NULL,
+	PHONE CHAR(10) NULL,
+	ADDRESS  VARCHAR(20) NOT NULL,
+	ZIP VARCHAR(20) NOT NULL,
+	COUNTRY VARCHAR(20) NOT NULL,
+	BONUS VARCHAR(10) NOT NULL,
+	MONEY_PER_HOUR VARCHAR(10) NOT NULL,
+	DATE_START DATE NOT NULL,
+	SSN CHAR(9)
+);
+
+INSERT INTO EMPLOYEE_TBL(EMP_ID1,ADDRESS) values(1,'BEIJIGN'),(1,'SHANGHAI'),(1,'SHANGHAI'),(2,'BEIJIGN'),(2,'SHANGHAI'),(2,'SHANGHAI'),(3,'GUANGZHOU'),(3,'SHANGHAI');
+
+
+#顾客
+CREATE TABLE CUSTOMER_TBL(
+	CUST_ID INT NOT NULL,
+	FIRST_NAME VARCHAR(20) NOT NULL,
+	MIDDLE_NAME VARCHAR(20) NOT NULL,
+	LAST_NAME VARCHAR(20) NOT NULL,
+	ADDRESS  VARCHAR(20) NOT NULL,
+	COUNTRY VARCHAR(20) NOT NULL,
+	ZIP CHAR(2) NOT NULL,
+	BONUS VARCHAR(10) NOT NULL,
+	PHONE CHAR(10) NULL
+);
+
+#顾客订单
+CREATE TABLE CUST_ORDER(
+	ORDER_ID VARCHAR(20) NOT NULL,
+	DATE_LAST_ORDER DATE NOT NULL,
+	PRODUCT_ID INT NOT NULL,
+	PRODUCT_DESC VARCHAR(20) NOT NULL
+);
+
+
+/*第八章练习*/
+#1
+SELECT CUST_ID , CUST_NAME FROM CUSTOMER_TBL WHERE CUST_ADDRESS IN ('Indiana','Ohio','Michigan','Illinois') AND CUST_NAME LIKE 'A%' OR CUST_NAME LIKE 'B%'  ORDER BY CUST_NAME;
+
+#2
+SELECT PROD_ID , PROD_DESC , COST FROM PRODUCTS_TBL WHERE COST BETWEEN 1.00 AND 12.50;
+
+#3
+SELECT PROD_ID , PROD_DESC , COST FROM PRODUCTS_TBL WHERE COST >= 1.00 OR COST <= 12.50;
+
+#4
+SELECT PROD_ID , PROD_DESC , COST FROM PRODUCTS_TBL WHERE COST <= 1.00 OR COST >= 12.50;
+SELECT PROD_ID , PROD_DESC , COST FROM PRODUCTS_TBL WHERE COST NOT BETWEEN 1.00 AND 12.50;
+
+#5
+SELECT PORD_DESC , COST , 0.05 * COST  AS SHUI  FROM PRODUCTS_TBL ORDER BY COST DESC;
+
+#6--另一种方法没有想出来
+SELECT PORD_DESC , COST , 0.05 * COST  AS SHUI , 1.05 * COST AS ZONGJIA FROM PRODUCTS_TBL ORDER BY COST DESC;
+
+#7
+SELECT * FROM PRODUCTS_TBL WHERE PRODUCT_ID = 1 OR PRODUCT_ID = 2 OR PRODUCT_ID = 3;
+SELECT * FROM PRODUCTS_TBL WHERE PRODUCT_ID != 1 AND PRODUCT_ID != 2 AND PRODUCT_ID != 3;
+
+#8
+SELECT * FROM PRODUCTS_TBL WHERE PRODUCT_ID IN ('1','2','3');
+SELECT * FROM PRODUCTS_TBL WHERE PRODUCT_ID NOT IN ('1','2','3');
+
+#9
+SELECT * FROM PRODUCTS_TBL WHERE PRODUCT_DESC LIKE 'P%';
+SELECT * FROM PRODUCTS_TBL WHERE PRODUCT_DESC NOT LIKE 'P%';
+
+
+/*第十章*/
+CREATE TABLE EMP_PAY_TMP(
+	CITY VARCHAR(20),
+	LAST_NAME VARCHAR(20),
+	FIRST_NAME VARCHAR(20),
+	PAY_RATE DOUBLE,
+	SALARY INT
+); 
+
+delimiter //
+	create procedure EMP_PAY_TMP_P()
+	begin
+	declare i int ;
+	set i = 0 ;
+	while i < 10 do 
+	INSERT INTO EMP_PAY_TMP VALUES(i,concat('last_name',i),concat('first_name',i),i+0.99,i+1999);
+	set i = i +1;
+	end while;
+	end
+	//
+
+delimiter ;
+call EMP_PAY_TMP_P;
+
+delimiter //
+	create procedure EMP_PAY_TMP_C()
+	begin
+	declare i,j  int ;
+	set i = 0 , j = 1;
+	while i < 10 do 
+	UPDATE EMP_PAY_TMP SET CITY = j WHERE CITY = i;
+	set i = i + 2;
+	set j = j + 1;
+	end while;
+	end;
+	//
+
+delimiter ;
+call EMP_PAY_TMP_C;
+
+#利用汇总该函数获得不同城市的平均小时工资和薪水
+SELECT CITY , AVG(PAY_RATE) , AVG(SALARY) FROM EMP_PAY_TMP GROUP BY CITY ;
+SELECT CITY , AVG(PAY_RATE) , AVG(SALARY) FROM EMP_PAY_TMP GROUP BY CITY having AVG(SALARY) > 2000 ;
+
+/*第十一章*/
+#3
+SELECT CONCAT(FIRST_NAME,'.',LAST_NAME,'@',PERPTECH,'.','COM') FROM EMPLOYEE_TBL;
+SELECT CONCAT(FIRST_NAME,'.',LAST_NAME,'@PERPTECH.COM') FROM EMPLOYEE_TBL;
+
+#4
+#a
+SELECT CONCAT(FIRST_NAME,',',LAST_NAME) AS NAME , SSN , PHONE FROM EMPLOYEE_TBL;
+#b
+SELECT CONCAT(FIRST_NAME,',',LAST_NAME) AS NAME , CONCAT(SUBSTR(SSN,1,3),'-',SUBSTR(SSN,4,3),'-',SUBSTR(SSN,7,3)) , PHONE FROM EMPLOYEE_TBL;
+#c
+SELECT CONCAT(FIRST_NAME,',',LAST_NAME) AS NAME , CONCAT(SUBSTR(SSN,1,3),'-',SUBSTR(SSN,4,3),'-',SUBSTR(SSN,7,3)) AS ID , CONCAT('(',SUBSTR(PHONE,1,3),')',SUBSTR(PHONE,4,3),'-',SUBSTR(PHONE,7,4)) AS PHONE FROM EMPLOYEE_TBL;
+
+
+/*第十二章*/
+#3
+SELECT PROD_ID , EXTRACT(YEAR FROM DATE_TEST) FROM PRODUCT_TMP;
+SELECT PROD_ID , EXTRACT(MONTH FROM DATE_TEST) FROM PRODUCT_TMP;
+SELECT PROD_ID , EXTRACT(DAY FROM DATE_TEST) FROM PRODUCT_TMP;
+
+#6
+SELECT PROD_ID , DAYNAME(DATE_TEST) FROM PRODUCT_TMP;
+
+#7
+SELECT DAYOFYEAR(CURRENT_DATE);
+
+#8
+SELECT NOW();
+SELECT DATE_FORMAT(NOW(),'%y-%m-%d');
+SELECT DATE_FORMAT(NOW(),'%h:%i:%s');
+
+
+/*第十三章*/
+
+#3
+SELECT E.LAST_NAME , E.FIRST_NAME , EP.DATE_HIRE 
+FROM EMPLOYEE_TBL E INNER JOIN EMPLOYEE_PAY_TBL EP
+ON E.EMP_ID1 = EP.EMP_ID;
+
+#4
+SELECT E.EMP_ID1 , E.LAST_NAME , E.FIRST_NAME , EP.SALARY , EP.BONUS
+FROM EMPLOYEE_TBL E INNER JOIN EMPLOYEE_PAY_TBL EP
+ON E.EMP_ID1 = EP.EMP_ID;
+
+SELECT E.EMP_ID1 , E.LAST_NAME , E.FIRST_NAME , EP.SALARY , EP.BONUS
+FROM EMPLOYEE_TBL E , EMPLOYEE_PAY_TBL EP
+WHERE  E.EMP_ID1 = EP.EMP_ID;
+
+SELECT AVG(BONUS) FROM EMPLOYEE_TBL GROUP BY COUNTRY;
+
+SELECT E.COUNTRY , AVG(SALARY) AS AVG_SALARY
+FROM EMPLOYEE_TBL E INNER JOIN EMPLOYEE_PAY_TBL  EP 
+ON E.EMP_ID1 = EP.EMP_ID GROUP BY E.COUNTRY;
+
+
+ALTER TABLE EMPLOYEE_PAY_TBL ADD COLUMN SALARY DOUBLE NOT NULL;
+ALTER TABLE EMPLOYEE_PAY_TBL ADD COLUMN BONUS DOUBLE NOT NULL;
+
+
+/*第十四章*/
+#1
+CREATE TABLE EMPLOYEE_TBL1(
+	EMP_ID VARCHAR(9) NOT NULL PRIMARY KEY,
+	LAST_NAME VARCHAR(15) NOT NULL,
+	FIRST_NAME VARCHAR(15) NOT NULL,
+	MIDDLE_NAME VARCHAR(15) ,
+	ADDRESS VARCHAR(30) NOT NULL,
+	CITY VARCHAR(15) NOT NULL,
+	STATE VARCHAR(2) NOT NULL,
+	ZIP INTEGER(5) NOT NULL,
+	PHONE VARCHAR(10),
+	PAGER VARCHAR(10)
+);
+
+CREATE TABLE EMPLOYEE_PAY_TBL1(
+	EMP_ID VARCHAR(9) NOT NULL PRIMARY KEY,
+	POSITION VARCHAR(15) NOT NULL,
+	DATE_HIRE DATETIME,
+	PAY_RATE DECIMAL(4,2) NOT NULL,
+	DATE_LAST_RAISE DATETIME,
+	CONSTRAINT EMP_FK FOREIGN KEY(EMP_ID) REFERENCES EMPLOYEE_TBL1(EMP_ID)
+);
+
+CREATE TABLE CUSTOME_TBL1(
+	CUST_ID VARCHAR(10) NOT NULL PRIMARY KEY,
+	CUST_NAME VARCHAR(30) NOT NULL,
+	CUST_ADDRESS VARCHAR(20) NOT NULL,
+	CUST_CITY VARCHAR(15) NOT NULL,
+	CUST_STATE VARCHAR(2) NOT NULL,
+	CUST_ZIP INTEGER(5) NOT NULL,
+	CUST_PHONE INTEGER(10),
+	CUST_FAX INTEGER(10)
+); 
+
+CREATE TABLE ORDERS_TBL1(
+	ORD_NUM VARCHAR(10) NOT NULL PRIMARY KEY,
+	CUST_ID VARCHAR(10) NOT NULL,
+	PROD_ID VARCHAR(10) NOT NULL,
+	QTY INTEGER(6) NOT NULL,
+	ORD_DATE DATETIME
+); 
+
+CREATE TABLE PRODUCTS_TBL1(
+	PROD_ID VARCHAR(10) NOT NULL PRIMARY KEY,
+	PROD_DESC VARCHAR(40) NOT NULL,
+	COST DECIMAL(6,2) NOT NULL
+);
+
+
+
+delimiter //
+	CREATE PROCEDURE EMPLOYEE_TBL1_S()
+	begin
+	declare i int;
+	set i = 0;
+	while i < 10 do 
+	INSERT INTO EMPLOYEE_TBL1 VALUES(i,concat('last_name',i),concat('first_name',i),concat('middle_name',i),concat('address',i),concat('city',i),concat('s',i),concat(i),concat('phone',i),concat('pager',i));
+	SET i = i + 1;
+	end while;
+	end;
+	//
+delimiter ;
+call EMPLOYEE_TBL1_S;
+
+
+delimiter //
+	CREATE PROCEDURE EMPLOYEE_PAY_TBL1_S()
+	begin
+	declare i int;
+	set i = 0;
+	while i < 10 do 
+	INSERT INTO EMPLOYEE_PAY_TBL1 VALUES(i,concat('POSITION',i),NOW(),concat(i),NOW()+1);
+	SET i = i + 1;
+	end while;
+	end;
+	//
+delimiter ;
+call EMPLOYEE_PAY_TBL1_S;
+
+
+CREATE TABLE CUSTOME_TBL1(
+	CUST_ID VARCHAR(10) NOT NULL PRIMARY KEY,
+	CUST_NAME VARCHAR(30) NOT NULL,
+	CUST_ADDRESS VARCHAR(20) NOT NULL,
+	CUST_CITY VARCHAR(15) NOT NULL,
+	CUST_STATE VARCHAR(2) NOT NULL,
+	CUST_ZIP INTEGER(5) NOT NULL,
+	CUST_PHONE INTEGER(10),
+	CUST_FAX INTEGER(10)
+); 
+
+delimiter //
+	CREATE PROCEDURE CUSTOME_TBL1_S()
+	begin
+	declare i int
+	set i = 0;
+	while i < 10 do 
+	INSERT INTO CUSTOME_TBL1 VALUES(i,concat('CUST_NAME',i),concat('CUST_ADDRESS',i),concat('CUST_CITY',i),concat('S',i),concat(i),concat(i),concat(i));
+	SET i = i + 1;
+	end while;
+	end;
+	//
+delimiter ;
+call CUSTOME_TBL1_S;
+
+
+delimiter //
+	CREATE PROCEDURE ORDERS_TBL1_S()
+	begin
+	declare i int;
+	set i = 0;
+	while i < 10 do 
+	INSERT INTO ORDERS_TBL1 VALUES(i,i,i,concat(i),now());
+	SET i = i + 1;
+	end while;
+	end;
+	//
+delimiter ;
+call ORDERS_TBL1_S;
+
+delimiter //
+	CREATE PROCEDURE PRODUCTS_TBL1_S()
+	begin
+	declare i int;
+	set i = 0;
+	while i < 10 do 
+	INSERT INTO PRODUCTS_TBL1 VALUES(i,CONCAT('PROD_DESC',i),concat(i));
+	SET i = i + 1;
+	end while;
+	end;
+	//
+delimiter ;
+call PRODUCTS_TBL1_S;
+
+#2
+SELECT CUST_ID FROM ORDERS_TBL1 WHERE ORD_NUM = '23E934';
+
+UPDATE CUSTOME_TBL1 SET CUST_NAME = 'DAVIDS MARKET'
+WHERE CUST_ID = (SELECT CUST_ID FROM ORDERS_TBL1 WHERE ORD_NUM = '23E934');
+
+#3
+SELECT PAY_RATE FROM EMPLOYEE_PAY_TBL WHERE EMP_ID = 343559876;
+
+SELECT CONCAT(E.FIRST_NAME,E.MIDDLE_NAME,E.LAST_NAME) 
+FROM EMPLOYEE_TBL1 E ,
+	EMPLOYEE_PAY_TBL1 EP
+WHERE E.EMP_ID = EP.EMP_ID AND EP.PAY_RATE > (
+SELECT PAY_RATE FROM EMPLOYEE_PAY_TBL WHERE EMP_ID = 343559876
+);
+
+#4
+SELECT AVG(COST) FROM PRODUCTS_TBL1;
+
+SELECT PROD_DESC FROM PRODUCTS_TBL1
+WHERE COST > (SELECT AVG(COST) FROM PRODUCTS_TBL1);
+
+/*第十五章*/
+
+#1
+SELECT CUST_ID FROM CUSTOMER_TBL
+INTERSECT
+SELECT CUST_ID FROM ORDERS_TBL;
+
+#2
+SELECT CUST_ID FROM CUSTOMER_TBL
+EXTRACT
+SELECT CUST_ID FROM ORDERS_TBL;
+
+/*第十六章*/
+#2
+CREATE INDEX EP_POSITION ON EMPLOYEE_PAY_TBL (POSITION);
+
+#3
+CREATE UNIQUE INDEX EP_Q_SALARY ON EMPLOYEE_PAY_TBL (SALARY);
+
+#4
+CREATE INDEX M ON ORDERS_TBL(CUST_ID,PROD_ID,ORD_DATE);
+
+/*第二十一章*/
+#2.1获得所有表的信息
+USE INFORMATION_SCHEMA;
+SELECT TABLE_NAME FROM TABLES; 
+
+#2.2获得所有视图的信息
+USE INFORMATION_SCHEMA;
+SELECT TABLE_SCHEMA FROM TABLES; 
+
+#2.3获得所有用户名
+USE mysql;
+select user from user;
+
+#3获得test_c数据库的所有用户和权限
+USE mysql;
+SELECT USER , TABLE_NAME ,TABLE_PRIV,COLUMN_priv  FROM tables_priv;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*总练习*/
+#1
+create database bonus;
+#2
+use bonus;
+#3
+create table teams(
+	team_id integer(2) not null,
+	name varchar(20) not null
+);
+
+#4
+create table players(
+	player_id integer(2) not null,
+	last varchar(20) not null,
+	first varchar(20) not null,
+	team_id integer(2) null,
+	numbe integer(2) not null
+);
+
+#5
+create table player_data(
+	player_id integer(2) not null,
+	height decimal(4,2) not null,
+	weight decimal(5,2) not null
+);
+#6
+create table games(
+	game_id integer(2) not null,
+	game_dt datetime not null,
+	home_team_id integer(2) not null,
+	guest_team_id integer(2) not null
+);
+
+#7
+create table scores(
+	game_id integer(2) not null,
+	team_id integer(2) not null,
+	score integer(3) not null,
+	win_lose varchar(4) not null
+); 
+
+#8
+show tables;
+
+#9
+insert into teams values('1','string music');
+insert into teams values('2','hackers');
+insert into teams values('3','sharp shooters');
+insert into teams values('4','hammer time');
+
+#10
+insert into players values('1','smith','john','1','12');
+insert into players values('2','bobbit','billy','1','2');
+insert into players values('3','hurta','wil','2','32');
+insert into players values('4','ouchy','tim','2','22');
+insert into players values('5','byrd','eric','3','6');
+insert into players values('6','jordan','ryan','3','23');
+insert into players values('7','hammer','wally','4','21');
+insert into players values('8','hammer','ron','4','44');
+insert into players values('11','knotgood','al',null,'0');
+#11
+insert into player_data values('1','71','180');
+insert into player_data values('2','58','195');
+insert into player_data values('3','72','200');
+insert into player_data values('4','74','170');
+insert into player_data values('5','71','182');
+insert into player_data values('6','72','289');
+insert into player_data values('7','79','250');
+insert into player_data values('8','73','193');
+insert into player_data values('11','85','310');
+
+#12
+insert into games values('1','2002-05-01','1','2');
+insert into games values('2','2002-05-02','3','4');
+insert into games values('3','2002-05-03','1','3');
+insert into games values('4','2002-05-05','2','4');
+insert into games values('5','2002-05-05','1','2');
+insert into games values('6','2002-05-09','3','4');
+insert into games values('7','2002-05-10','2','3');
+insert into games values('8','2002-05-11','1','4');
+insert into games values('9','2002-05-12','2','3');
+insert into games values('10','2002-05-15','1','4');
+
+#13
+insert into scores values('1','1','66','lose');
+insert into scores values('2','3','78','win');
+insert into scores values('3','1','45','lose');
+insert into scores values('4','2','56','lose');
+insert into scores values('5','1','100','win');
+insert into scores values('6','3','67','lose');
+insert into scores values('7','2','57','lose');
+insert into scores values('8','1','98','win');
+insert into scores values('9','2','56','lose');
+insert into scores values('10','1','46','lose');
+
+insert into scores values('1','2','75','win');
+insert into scores values('2','4','46','lose');
+insert into scores values('3','3','87','win');
+insert into scores values('4','4','99','win');
+insert into scores values('5','2','88','lose');
+insert into scores values('6','4','77','win');
+insert into scores values('7','3','87','win');
+insert into scores values('8','4','56','lose');
+insert into scores values('9','3','87','win');
+insert into scores values('10','4','78','win');
+
+#14
+select avg(height) from player_data;
+
+#15
+select avg(weight) from player_data;
+
+#16
+select concat('name=',p.last,' ','number=',p.numbe,' ','height=',pd.height,' ','weight=',pd.weight) as infor
+from players p,
+	player_data pd
+where p.player_id = pd.player_id;
+
+#17
+select t.name , concat(p.last,' ',p.first) , p.numbe
+from teams t,
+	players p
+where t.team_id = p.team_id;
+
+#18-那支球队在全部比赛中获得了最多的分数
+select t.name ,sum(s.score)
+from teams t,
+	scores s
+where t.team_id = s.team_id
+group by t.name
+order by 2 DESC;
+
+#19
+select s.team_id , s.score
+from scores s
+order by s.score desc limit 1;
+
+#20
+select s.game_id ,sum(score)
+from scores  s
+group by s.game_id 
+order by 2 desc
+limit 1;
+
+#21
+select last ,first
+from players
+where team_id is null;
+
+#22
+select count(*)
+from teams;
+
+#23
+select count(*)
+from players;
+
+#24
+select count(*)
+from games
+where game_dt = '2002-05-05';
+
+#25
+select p.last , p.first ,pd.height
+from players p,
+	player_data pd
+where p.player_id = pd.player_id
+order by 3 desc;
+
+#26
+select player_id,team_id from players where first = 'ron' and last ='hammer';
+
+delete from players where player_id = 8;
+delete from player_data where player_id = 8;
+
+select player_id from players where first = 'al' and last = 'knotgood';
+update players set team_id = 4 where player_id = 11;
+
+#27
+select first , last 
+from players
+where team_id = 4 and first <> 'al';
+
+#28
+select g.game_id , g.game_dt , ht.name as home, gt.name as guest
+from games g,
+	teams ht,
+	teams gt
+where ht.team_id = g.home_team_id
+and gt.team_id = g.guest_team_id;
+
+select *
+from games g,
+	teams ht,
+	teams gt
+where ht.team_id = g.home_team_id
+and gt.team_id = g.guest_team_id;
+
+
+#29
+create index name1 on teams(name);
+create index name2 on players(last,first);
+
+#30
+
+select team_id,count(*)
+from scores
+where win_lose = 'win'
+group by team_id 
+order by 2 desc;
+
+select name
+from teams 
+where team_id = 3;
+
+select  t.name,count(*)
+from teams t,
+	scores s
+where t.team_id = s.team_id
+and s.win_lose = 'win'
+group by t.team_id
+order by 2 desc;
+
+
+
+#31
+select team_id,count(*)
+from scores
+where win_lose = 'lose'
+group by team_id 
+order by 2 desc;
+
+select name
+from teams 
+where team_id = 3;
+
+select  t.name,count(*)
+from teams t,
+	scores s
+where t.team_id = s.team_id
+and s.win_lose = 'lose'
+group by t.team_id
+order by 2 desc;
+
+#32
+select t.name , avg(score)
+from teams t,
+	scores s
+where t.team_id = s.team_id 
+group by t.name
+order by 2 desc;
+
+#33
+select t.name ,sum(REPLACE(s.win_lose,'win',1)) as win 
+,sum(replace(s.win_lose,'lose',1)) as lose
+from teams t,
+	scores s
+where t.team_id = s.team_id 
+group by t.name
+order by 2 DESC ,3 ;
+
+ 
